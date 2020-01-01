@@ -11,53 +11,69 @@ export default class Attendance extends Component {
     super(props);
       this.state = {
           presentStudents: [],
-          students: []
+          presentStudentsDatabase: [],
+          students: [],
+          changed: false,
     }
   }
   
   componentDidMount() {
+    var date = new Date();
+    var day = date.toString().substring(4,16);
+
+    // Get roster from DB and update UI elements
     var students = [];
-    const ref = firebase.database().ref('Attendance/Dhruva/Roster');
-    ref.once('value').then(function(snapshot) {
+    const rosterRef = firebase.database().ref('Attendance/Dhruva/Roster');
+    rosterRef.once('value').then(function(snapshot) {
+      console.log(snapshot)
       snapshot.forEach(function(childSnapshot){
         students.push(childSnapshot.key)
       })
     }).then(() => this.setState({
       students: students
     }))
+
+
+    
+    var presentStudents = [];
+    var presentStudentsDatabase = [];
+    const presentRef = firebase.database().ref('Attendance/Dhruva/' + day +'/Attendance');
+    presentRef.once('value').then(function(snapshot) {
+      presentStudentsDatabase = snapshot.val()
+      for (var i = 0; i < snapshot.val().length; i++) {
+        presentStudents.push(snapshot.val()[i])
+      }
+    }).then(() => this.setState({
+      presentStudents: presentStudents,
+      presentStudentsDatabase: presentStudentsDatabase,
+    })).then(() => console.log(presentStudents))
   }
 
  
   onSelectionsChange = (presentStudents) => {
     // selectedFruits is array of { label, value }
-    this.setState({ presentStudents })
+    this.setState({presentStudents:presentStudents, changed: true })
   }
 
   submitAttendance = () => { 
-    var presentStudents = this.state.presentStudents.map(student => student.label);
+    var presentStudents = [];
+    if (this.state.changed) {
+        presentStudents = this.state.presentStudents.map(student => student.label);
+    } else {
+      presentStudents = this.state.presentStudentsDatabase
+    }
+    
+     
     var date = new Date();
     var day = date.toString().substring(4,16);
-
-    // const ref = firebase.database().ref('Attendance/Dhruva/' + day);
-    // ref.set({Abhay: 'Present'})
+    console.log(presentStudents)
+    const ref = firebase.database().ref('Attendance/Dhruva/' + day);
+    ref.set({Attendance: presentStudents})
 
 
 
   }
 
-  formatTime = (time) => {
-    var timeSt = new Date(time);
-      var date = timeSt.toString();
-      var dateShort= date.substring(0,15);
-      var hours = timeSt.getHours();
-      var minutes = timeSt.getMinutes();
-      var sal = (hours >= 12) ? " PM" : " AM";
-      if(hours == 0)hours = 12;
-      var timeValue = dateShort + " " + ((hours >12) ? hours -12 :hours);
-      timeValue += (((minutes < 10) ? ":0" : ":")  + minutes);
-      timeValue += sal;
-      return timeValue;
-  }
 
   render(){
       return (

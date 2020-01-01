@@ -2,10 +2,12 @@ import React, {Component} from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import * as firebase from 'firebase';
 import {createDrawerNavigator} from 'react-navigation-drawer';
-import {createAppContainer} from 'react-navigation';
+import {createAppContainer, createSwitchNavigator} from 'react-navigation';
 import Attendance from './components/Attendance/index';
 import Registration from './components/Registration/index';
-// Initialize Firebase
+import Login from './components/Authentication/Login'
+import Signup from './components/Authentication/Signup'
+//Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyAe4ys-PzQhimCv9W7vGcsB9_2GxHEK44k",
   authDomain: "yamunotri-30107.firebaseapp.com",
@@ -20,10 +22,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 
-
-
-  
-
 const appNavigator = createDrawerNavigator (
   {
     Attendance: {
@@ -35,7 +33,27 @@ const appNavigator = createDrawerNavigator (
   }
 )
 
-const AppContainer = createAppContainer(appNavigator);
+const authNavigator = createSwitchNavigator (
+  {
+    Login: {
+      screen: Login
+    },
+    Signup: {
+      screen: Signup,
+    },
+    App: {
+      screen: appNavigator,
+    }
+  },
+  {
+    initialRouteName: 'Login' 
+  }
+)
+  
+
+
+
+const AppContainer = createAppContainer(authNavigator);
 
 export default function App() {
   return (
